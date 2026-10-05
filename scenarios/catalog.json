@@ -1,0 +1,18 @@
+[
+  {"id":"E1","name":"Clean stream","fault":"No fault"},
+  {"id":"E2","name":"Duplicate event","fault":"Delivery duplication"},
+  {"id":"E3","name":"Late critical event","fault":"Delayed business evidence"},
+  {"id":"E4","name":"Out-of-order lifecycle","fault":"Incorrect arrival order"},
+  {"id":"E5","name":"Missing source","fault":"Required source stalls"},
+  {"id":"E6","name":"Stale enrichment","fault":"Reference data ages"},
+  {"id":"E7","name":"Compatible schema change","fault":"No semantic fault"},
+  {"id":"E8","name":"Semantic drift","fault":"Schema unchanged, meaning changed"},
+  {"id":"E9","name":"Unit mutation","fault":"Dollars to cents"},
+  {"id":"E10","name":"Bad transformation","fault":"Logic regression"},
+  {"id":"E11","name":"Stream-engine failure","fault":"Checkpoint recovery"},
+  {"id":"E12","name":"State replay","fault":"Historical reconstruction"},
+  {"id":"E13","name":"Cross-region delay","fault":"Geographic source lag"},
+  {"id":"E14","name":"Correction/retraction","fault":"Previously emitted fact revised"},
+  {"id":"E15","name":"Decision relativity","fault":"Same state, D0 vs D3/D4"},
+  {"id":"E16","name":"High-scale workload","fault":"Maximum sustainable throughput"}
+]

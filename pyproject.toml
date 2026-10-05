@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "stream-sure"
+version = "1.4.2"
+description = "STREAM-SURE: decision-relative business-invariant certification for real-time enterprise streams"
+requires-python = ">=3.11"
+authors = [
+  {name = "Naresh Somara"},
+  {name = "Chandrasekhar Reddy Manikiam"},
+  {name = "Saurav Kumar"}
+]
+license = {text = "Apache-2.0"}
+
+[project.scripts]
+streamsure = "streamsure.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["streamsure*"]

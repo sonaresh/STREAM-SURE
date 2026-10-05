@@ -1,0 +1,1 @@
+{"id":"FIN-001","expression":"refund_amount <= settled_amount","description":"Refund must not exceed settled amount."}

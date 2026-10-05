@@ -1,0 +1,1 @@
+{"id":"SEC-001","expression":"not (revoked_identity and privileged_session)","description":"A revoked identity must not retain a privileged session."}

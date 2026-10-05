@@ -1,0 +1,15 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://nareshsomara.com/stream-sure/ssac.schema.json",
+  "title":"Streaming State Assurance Certificate",
+  "type":"object",
+  "required":["certificate_id","state_id","state_version","decision_id","decision_class","outcome","issued_at","evidence","digest"],
+  "properties":{
+    "certificate_id":{"type":"string"},"state_id":{"type":"string"},"state_version":{"type":"integer","minimum":1},
+    "decision_id":{"type":"string"},"decision_class":{"type":"integer","minimum":0,"maximum":4},
+    "outcome":{"enum":["CERTIFIED","PROVISIONAL","WAIT","CORRECT","REJECT"]},
+    "reason_codes":{"type":"array","items":{"type":"string"}},"max_permitted_decision_class":{"type":["integer","null"]},
+    "issued_at":{"type":"number"},"evidence":{"type":"object"},"previous_certificate":{"type":["string","null"]},
+    "supersedes_certificate":{"type":["string","null"]},"digest":{"type":"string","pattern":"^[a-f0-9]{64}$"}
+  }
+}

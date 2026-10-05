@@ -1,0 +1,103 @@
+services:
+  kafka:
+    image: apache/kafka:4.1.0
+    hostname: kafka
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    healthcheck:
+      test: ["CMD-SHELL","/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list >/dev/null 2>&1"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  kafka-init:
+    image: apache/kafka:4.1.0
+    depends_on:
+      kafka: {condition: service_healthy}
+    entrypoint: ["/bin/bash","-lc"]
+    command:
+      - |
+        set -e
+        for topic in streamsure.events streamsure.certify.requests streamsure.certificates; do
+          /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic "$$topic" --partitions 1 --replication-factor 1
+        done
+        /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --list
+
+  streamsure:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    image: streamsure:1.1.3
+    command: ["streamsure","serve","--host","0.0.0.0","--port","8080","--db","/data/streamsure.db"]
+    volumes: ["./evidence/phase4:/data"]
+    ports: ["18081:8080"]
+    healthcheck:
+      test: ["CMD","python","-c","import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health',timeout=2).read()"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  jobmanager:
+    image: flink:1.20.2-scala_2.12-java17
+    command: jobmanager
+    ports: ["18082:8081"]
+    environment: ["JOB_MANAGER_RPC_ADDRESS=jobmanager"]
+
+  taskmanager:
+    image: flink:1.20.2-scala_2.12-java17
+    command: taskmanager
+    depends_on: [jobmanager]
+    environment: ["JOB_MANAGER_RPC_ADDRESS=jobmanager","TASK_MANAGER_NUMBER_OF_TASK_SLOTS=2"]
+
+  flink-job-build:
+    build:
+      context: flink-job
+      dockerfile: Dockerfile
+    image: streamsure-flink-job:1.1.3
+    entrypoint: ["/bin/true"]
+
+  flink-submit:
+    image: streamsure-flink-job:1.1.3
+    depends_on:
+      kafka: {condition: service_healthy}
+      kafka-init: {condition: service_completed_successfully}
+      jobmanager: {condition: service_started}
+      taskmanager: {condition: service_started}
+    entrypoint: ["/bin/bash","-lc"]
+    command: ["sleep 8; /opt/flink/bin/flink run -d -m jobmanager:8081 -c org.streamsure.StreamSureFlinkJob /opt/flink/usrlib/streamsure-flink-job.jar --bootstrap kafka:9092"]
+
+  bridge:
+    build:
+      context: .
+      dockerfile: docker/bridge.Dockerfile
+    image: streamsure-bridge:1.1.3
+    depends_on:
+      kafka: {condition: service_healthy}
+      kafka-init: {condition: service_completed_successfully}
+      streamsure: {condition: service_healthy}
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      STREAMSURE_API: http://streamsure:8080/certify
+    restart: unless-stopped
+
+  smoke:
+    image: streamsure-bridge:1.1.3
+    depends_on:
+      kafka: {condition: service_healthy}
+      kafka-init: {condition: service_completed_successfully}
+      streamsure: {condition: service_healthy}
+      bridge: {condition: service_started}
+    environment: ["KAFKA_BOOTSTRAP_SERVERS=kafka:9092"]
+    entrypoint: ["python","-m","streamsure.adapters.kafka_smoke"]
+    profiles: ["test"]

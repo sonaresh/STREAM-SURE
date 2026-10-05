@@ -1,0 +1,7 @@
+{
+  "name":"inventory-state",
+  "version":"1.0",
+  "semantics":{"verified_available_inventory":{"unit":"units","meaning":"physically verified sellable inventory"}},
+  "required_sources":["warehouse-a","warehouse-b","warehouse-c"],
+  "max_source_age_seconds":30
+}

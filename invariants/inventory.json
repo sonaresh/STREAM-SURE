@@ -1,0 +1,1 @@
+{"id":"INV-001","expression":"committed_inventory <= verified_available_inventory","description":"Committed inventory must not exceed verified availability."}

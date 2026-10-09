@@ -1,16 +1,11 @@
 cff-version: 1.3.0
 title: "STREAM-SURE: Business-Invariant Certification for Decision-Grade Real-Time Enterprise Streams"
-message: "If you use this research prototype, please cite the corresponding STREAM-SURE paper."
+message: "If you use this research prototype or its reproducibility artifacts, please cite the corresponding STREAM-SURE paper and this software release."
 type: software
 authors:
   - family-names: Somara
     given-names: Naresh
     email: naresh.somara.us@gmail.com
-  - family-names: Manikiam
-    given-names: Chandrasekhar Reddy
-    email: cachandrasekharm@gmail.com
-  - family-names: Kumar
-    given-names: Saurav
-    email: ksauravt@gmail.com
-version: 1.0.1
+version: 1.4.2
 license: Apache-2.0
+repository-code: "https://github.com/sonaresh/STREAM-SURE"

@@ -1,49 +1,121 @@
-# STREAM-SURE Prototype v1.1.3
-
-**Phase 4 adds real Apache Kafka + Apache Flink distributed integration.** See `PHASE4_KAFKA_FLINK.md`.
-
+# STREAM-SURE v1.4.2
 
 **Business-Invariant Certification for Decision-Grade Real-Time Enterprise Streams**
 
-Authors: Naresh Somara, Chandrasekhar Reddy Manikiam, Saurav Kumar
+Author: **Naresh Somara**  
+Affiliation: Independent Researcher, USA
 
-This package is the local-first research prototype for STREAM-SURE. It implements the paper's core contribution as executable software: decision-bearing streaming state, decision-relative certification, SSAC evidence, five certification outcomes, retroactive certification repair, E1-E16 scenarios, B0-B5 baselines, and research metrics.
+STREAM-SURE is a research prototype for decision-relative certification of continuously derived streaming state. It does **not** replace stream-processing guarantees such as exactly-once execution, event time, watermarks, contracts, lineage, or data-quality controls. Instead, it binds state, evidence, decision context, predicate outcomes, reason codes, and certificate lifecycle into an auditable certification object.
 
-## What is fully runnable now
+## Research status
 
-- deterministic certification engine using PASS / FAIL / UNKNOWN predicates
-- five outcomes: CERTIFIED / PROVISIONAL / WAIT / CORRECT / REJECT
+- Prototype version: **v1.4.2**
+- Manuscript: submitted to **Data & Knowledge Engineering** (October 2026)
+- Public reproducibility artifacts: included in this repository
+- Frozen publication-scale E16 campaign: **210 runs**
+- Final local validation: **25/25 tests passed**
+
+The submitted manuscript and frozen evidence should be treated as immutable. Any corrected or extended experiment should use a new version and campaign identifier.
+
+## Core research boundary
+
+```text
+ProcessingCorrect(S_t) does not imply DecisionReady(S_t, D)
+
+PredicateEvaluable(S_t, E_t) does not imply CertificationClosed(S_t, D)
+```
+
+STREAM-SURE defines a decision-relative certification contract rather than a new predicate language. The same state may be acceptable for one decision and withheld for another.
+
+## Main mechanisms
+
 - Decision-Bearing Streaming State (DBSS)
-- finance, inventory, and security invariants
-- SHA-256 sealed Streaming State Assurance Certificates (SSAC)
-- durable SQLite certificate/evidence store
-- affected-decision tracking for repaired certificates
-- REST-like JSON API using Python standard library only
-- `/health`, `/certify`, `/repair`, `/certificates/{id}`, `/metrics`
-- E1-E16 frozen scenario catalog
-- B0-B5 progressive baseline harness
-- FDRR, VDA, IVDR, premature-certification rate, P50/P95/P99 timing
-- CSV/JSON evidence export plus SHA-256 manifest
-- Docker image definition
-- Kubernetes deployment
-- optional Kafka adapter
-- Windows PowerShell validation scripts
+- decision-relative certification
+- PASS / FAIL / UNKNOWN evidence semantics
+- Streaming State Assurance Certificate (SSAC)
+- outcomes: CERTIFIED / PROVISIONAL / WAIT / CORRECT / REJECT
+- retroactive certificate repair
+- certificate lineage and affected-consumer tracking
+- E1-E16 controlled scenario catalog
+- B0-B5 progressive capability baselines
 
-## Scientific boundary
+## Flagship E15 behavior
 
-The local harness is an executable reference implementation. It does **not** claim that the local in-process benchmark is equivalent to the final Kafka/Flink enterprise experiment. Final journal-scale throughput, recovery, and distributed-runtime claims must come from the later frozen Kafka/Flink/Kubernetes experiment.
+For the same derived inventory state with required freshness evidence unresolved:
 
-## Lab fit
+- **D0 observation -> CERTIFIED**
+- **D3 high-impact automation -> WAIT**
 
-The default workflow is designed for Windows 11 + VS Code PowerShell + Python + Docker Desktop. No AWS resources are required for the core prototype.
+A required `UNKNOWN` does not silently become `PASS`. `PROVISIONAL` is used only when an explicit lower-consequence fallback policy permits it.
 
-## Quick start: PowerShell
+## Final validation
+
+The final v1.4.2 local validation on Windows 11 / Python 3.12.10 passed **25/25 automated tests** covering API behavior, DBSS/SSAC semantics, required UNKNOWN -> WAIT behavior, explicit provisional fallback, invariants, repair, affected-consumer tracking, scenario behavior, and Phase 6B aggregation edge cases.
+
+## Correctness campaign
+
+Phase 5 executes E1-E15 with:
+
+- 15 scenarios
+- 20 parameterized cases per scenario
+- 6 progressive baselines (B0-B5)
+- **1,800 total episodes**
+
+For the 300 STREAM-SURE evaluations in the frozen campaign:
+
+- FDRR = 0
+- VDA = 1
+- IVDR = 1
+- premature certification rate = 0
+
+These are controlled benchmark results, not estimates of field error rates.
+
+## Final E16 Phase 6B campaign
+
+Frozen campaign:
+
+```text
+results/phase6b/20261004T205422Z/
+```
+
+Artifacts:
+
+- `aggregate_reproducibility.csv`
+- `replicate_runs.csv`
+- `reproducibility_summary.json`
+- `SHA256SUMS.json`
+
+The final campaign contains **30 repetitions at each of 7 target input rates = 210 total runs**.
+
+| Target input | Sustained runs | Sustained rate | Median P95 latency |
+|---:|---:|---:|---:|
+| 100/s | 30/30 | 100.0% | 217.9 ms |
+| 250/s | 30/30 | 100.0% | 532.6 ms |
+| 500/s | 29/30 | 96.7% | 1.37 s |
+| 1000/s | 28/30 | 93.3% | 3.96 s |
+| 1250/s | 27/30 | 90.0% | 9.22 s |
+| 2250/s | 23/30 | 76.7% | 43.59 s |
+| 2450/s | 22/30 | 73.3% | 49.31 s |
+
+Interpretation:
+
+- 100-250 events/s: reproducible low-latency region under the manuscript's explicit P95 < 1 s analysis convention
+- 500 events/s: boundary point
+- 1000 events/s: latency-degraded region
+- 1250 events/s: saturation onset
+- 2250-2450 events/s: deep saturation / reliability degradation
+
+Incomplete and zero-certificate runs are retained in reliability statistics. Latency statistics exclude runs with no certificate-latency observation rather than fabricating latency values.
+
+### Important configuration provenance
+
+The deployment script intended to start eight certification bridge replicas, but frozen campaign logs show Docker Compose reconciliation removing replicas 2-8 immediately before measured runs. Therefore, the published E16 results must be interpreted as measurements of an **effective single-bridge certification path**, not an eight-worker scaling result.
+
+## Quick validation
+
+PowerShell:
 
 ```powershell
-cd C:\Users\nares\OneDrive\Desktop\Prototype
-Expand-Archive .\STREAM-SURE_End_to_End_Prototype_v1.0.1.zip -DestinationPath .\STREAM-SURE
-cd .\STREAM-SURE
-
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
@@ -52,189 +124,54 @@ pip install -e .
 .\scripts\validate.ps1
 ```
 
-Expected validation includes unit/API tests, environment doctor output, and a B0-B5 smoke benchmark.
+Phase 6 / Phase 6B requires **Docker Desktop to be running**. If Docker is stopped, a Docker API connection failure from `phase6-reset.ps1` is expected and does not invalidate previously generated evidence.
 
-## Flagship decision-relative demo
-
-```powershell
-.\scripts\run-demo.ps1
-```
-
-The demo evaluates the same inventory state for low- and high-consequence uses. When a required warehouse has not reported, the low-consequence observation can be handled differently from a high-consequence shipment commitment.
-
-## Start API
+## Phase 4 Kafka/Flink E15 acceptance
 
 ```powershell
-.\scripts\run-api.ps1
+.\scripts\phase4-deploy.ps1
+.\scripts\phase4-smoke.ps1
+.\scripts\phase4-status.ps1
 ```
 
-Then in another PowerShell terminal:
+Expected flagship outcome:
+
+```text
+D0 = CERTIFIED
+D3 = WAIT
+```
+
+## Phase 6B reproduction
+
+Use a clean deployment state:
 
 ```powershell
-Invoke-RestMethod http://127.0.0.1:8080/health
-Invoke-WebRequest http://127.0.0.1:8080/metrics
+.\scripts\phase6-reset.ps1
+.\scripts\phase6b-run.ps1
 ```
 
-### Certification request
+Do not overwrite the frozen publication campaign. New experiments should use a new campaign directory/version.
 
-```powershell
-$body = @{
-  state = @{
-    state_id = "inv-001"
-    state_version = 1
-    domain = "inventory"
-    value = @{
-      committed_inventory = 50
-      verified_available_inventory = 100
-    }
-    evidence = @{
-      temporal = "PASS"
-      contract = "PASS"
-      lineage = "PASS"
-      freshness = "PASS"
-      uncertainty = "PASS"
-      invariant = "PASS"
-      decision_policy = "PASS"
-    }
-    required_sources = @("warehouse-a","warehouse-b")
-    source_freshness = @{ "warehouse-a" = 0.1; "warehouse-b" = 0.2 }
-    source_completeness = @{ "warehouse-a" = $true; "warehouse-b" = $true }
-  }
-  decision = @{
-    decision_id = "ship-001"
-    decision_class = 2
-    purpose = "commit shipment"
-  }
-} | ConvertTo-Json -Depth 8
+## Repository boundary
 
-Invoke-RestMethod -Method Post -Uri http://127.0.0.1:8080/certify -ContentType "application/json" -Body $body
-```
+This GitHub repository contains source code and curated reproducibility results. Full raw evidence is retained separately because of its size. The SHA-256 manifest may reference raw files that are not all stored in GitHub.
 
-## Benchmark
+## Scientific limitations
 
-```powershell
-.\scripts\run-benchmark.ps1 -Repetitions 20
-```
+The current evidence does **not** establish:
 
-Outputs:
+- production-enterprise throughput
+- multi-host cluster scalability
+- superiority of an external certification service over an equivalently expressive in-engine implementation
+- causal contribution of each individual predicate in isolation
+- protection against arbitrary Byzantine source behavior
 
-- `results/benchmark/episodes.csv`
-- `results/benchmark/summary.json`
-- `results/benchmark/SHA256SUMS.json`
+These limitations are explicit in the manuscript.
 
-These are **research-harness results**, not final paper results.
+## Citation
 
-## Docker
+See `CITATION.cff`.
 
-```powershell
-docker compose build
-docker compose up -d
-docker compose ps
-Invoke-RestMethod http://127.0.0.1:8080/health
-```
+## License
 
-Stop:
-
-```powershell
-docker compose down
-```
-
-## Kubernetes / kind
-
-```powershell
-docker build -t streamsure:1.0.1 -f docker\Dockerfile .
-kind create cluster --name streamsure
-kind load docker-image streamsure:1.0.1 --name streamsure
-kubectl apply -f kubernetes\deployment.yaml
-kubectl -n stream-sure rollout status deployment/streamsure
-kubectl -n stream-sure port-forward svc/streamsure 8080:8080
-```
-
-Then validate `/health` and `/metrics`.
-
-## Optional Kafka adapter
-
-The core package has zero non-stdlib runtime dependencies. Kafka support is intentionally optional:
-
-```powershell
-pip install -r requirements-kafka.txt
-$env:KAFKA_BOOTSTRAP_SERVERS="localhost:9092"
-```
-
-The adapter does not embed credentials. For MSK or enterprise Kafka, configure authentication externally.
-
-## Research scenario catalog
-
-| ID | Scenario |
-|---|---|
-| E1 | Clean stream |
-| E2 | Duplicate event |
-| E3 | Late critical event |
-| E4 | Out-of-order lifecycle |
-| E5 | Missing source |
-| E6 | Stale enrichment |
-| E7 | Compatible schema change |
-| E8 | Semantic drift |
-| E9 | Unit mutation |
-| E10 | Bad transformation |
-| E11 | Stream-engine failure |
-| E12 | State replay |
-| E13 | Cross-region delay |
-| E14 | Correction/retraction |
-| E15 | Decision relativity |
-| E16 | High-scale workload |
-
-## Baselines
-
-- B0: At-least-once
-- B1: Exactly-once abstraction
-- B2: B1 + event-time sufficiency
-- B3: B2 + contract assurance
-- B4: B3 + lineage/freshness assurance
-- B5: STREAM-SURE full decision-relative certification
-
-The local harness models these guarantees as evidence predicates. Final Kafka/Flink experiments must implement the guarantees using the actual runtime.
-
-## Next empirical milestone
-
-1. Run this package locally and freeze commit/tag.
-2. Validate Docker.
-3. Validate kind/Kubernetes.
-4. Integrate Kafka producer/consumer.
-5. Add a real Flink operator/job that emits DBSS state.
-6. Execute E1-E15 on Kafka/Flink.
-7. Run E16 sustainable-throughput sweep on lab hardware.
-8. Use a short-lived AWS validation only after local evidence is clean.
-9. Replace manuscript placeholders with measured results only.
-## v1.1.3 research-semantics freeze
-
-Before publication-grade experiments, v1.1.3 aligns runtime behavior with the manuscript rule: a required `UNKNOWN` produces `WAIT` by default. `PROVISIONAL` now requires an explicit lower-class fallback policy. The distributed E15 acceptance criterion is D0 `CERTIFIED` versus D3 `WAIT` for the same derived state.
-
-## Phase 5 — Frozen correctness experiment campaign (v1.3.0)
-
-After v1.1.3 distributed acceptance is frozen, run:
-
-```powershell
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-.\scripts\phase5-run.ps1
-```
-
-The campaign executes E1–E15 with 20 parameterized cases per scenario across B0–B5 (1,800 paired episodes), creates the dedicated E15 decision-relativity evidence, computes confidence intervals and exact paired McNemar comparisons, and writes a SHA-256 evidence manifest under `evidence/phase5/`. E16 is intentionally reserved for Phase 6.
-
-
-## Phase 6 E16 scale
-See `PHASE6_E16_SCALE.md`. Use `scripts/phase6-deploy.ps1` then `scripts/phase6-run.ps1`.
-
-
-## v1.4.1 E16 baseline isolation
-Before every independent E16 sweep run `scripts/phase6-reset.ps1`. The scale runner now rejects a dirty API state by default and uses fractional rate pacing at low targets. See `PHASE6_v1.4.1_BASELINE_FIX.md`.
-
-## v1.4.1 optimized Phase 6 runtime
-The E16 runtime now batches HTTP certification and SQLite persistence and uses persistent bridge connections. Research semantics are unchanged. See `PHASE6_v1.4.1_PERFORMANCE_OPTIMIZATION.md`.
-
-## Phase 6B reproducibility
-
-Run `scripts/phase6b-run.ps1` after a clean `scripts/phase6-reset.ps1`. Evidence is stored in timestamped, non-overwriting directories under `evidence/phase6b/`. See `PHASE6B_REPRODUCIBILITY.md`.
-
-## v1.4.2 Phase 6B evidence integrity patch
-The replicated E16 aggregator now treats zero-certificate runs as valid failed observations rather than crashing on missing latency. The campaign runner resets distributed state between target levels and after any unsustained/incomplete repetition so backlog cannot cascade into subsequent evidence. See `PHASE6B_v1.4.2_EVIDENCE_FIX.md`.
+Apache-2.0.
